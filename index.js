@@ -13,4 +13,9 @@ const server = app.listen(PORT, () => {
 const io = socket(server);
 io.on('connection', (socket) => {
     console.log(`connection established via id: ${socket.id}`)
+
+    socket.on('chat', data => {
+        console.log(`${data.userName}: ${data.message}`)
+        socket.emit('chat', data)
+    })
 })
