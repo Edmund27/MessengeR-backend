@@ -14,8 +14,8 @@ const io = socket(server);
 io.on('connection', (socket) => {
     console.log(`connection established via id: ${socket.id}`)
 
-    socket.on('chat', data => {
-        console.log(`${data.userName}: ${data.message}`)
-        socket.emit('chat', data)
+    socket.on('chat', messageObject => {
+        console.log(`${messageObject.userName}: ${messageObject.message}`)
+        io.emit('chat', messageObject)
     })
 })
