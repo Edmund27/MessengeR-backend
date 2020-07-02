@@ -4,11 +4,12 @@ module.exports = (sequelize, DataTypes) => {
     "message",
     {
       text: DataTypes.STRING,
+      senderId: DataTypes.INTEGER,
     },
     {}
   );
   message.associate = function (models) {
-    // associations can be defined here
+    message.belongsTo(models.chat);
   };
   return message;
 };
