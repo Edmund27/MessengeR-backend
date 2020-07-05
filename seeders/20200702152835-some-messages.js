@@ -10,36 +10,42 @@ module.exports = {
           senderId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
+          chatId: 1
         },
         {
           text: 'how are you',
           senderId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
+          chatId: 1
         },
         {
           text: 'good',
-          senderId: 3,
+          senderId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
+          chatId: 1
         },
         {
           text: 'hey',
           senderId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
+          chatId: 1
         },
         {
           text: 'how are you',
           senderId: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
+          chatId: 1
         },
         {
           text: 'good',
-          senderId: 3,
+          senderId: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
+          chatId: 1
         },
       ],
       {}
