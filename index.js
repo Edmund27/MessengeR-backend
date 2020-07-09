@@ -22,11 +22,7 @@ const server = app.listen(PORT, () => {
 //sockets*************************
 const io = socket(server);
 io.sockets.on('connection', async (socket) => {
-    // const users = await User.findAll()
-    // console.log('USERS TEST', users)
-    //socket.emit('sendUsers', users)
     socket.on('userLogin', async email => {
-        console.log("AGAIN *************************", email)
         const user = await User.findOne({
             where: {
                 email
@@ -84,22 +80,22 @@ app.post("/echo", (req, res) => {
     });
 });
 
-// POST endpoint which requires a token for testing purposes, can be removed
-app.post("/authorized_post_request", authMiddleWare, (req, res) => {
-    // accessing user that was added to req by the auth middleware
-    const user = req.user;
-    // don't send back the password hash
-    delete user.dataValues["password"];
+// // POST endpoint which requires a token for testing purposes, can be removed
+// app.post("/authorized_post_request", authMiddleWare, (req, res) => {
+//     // accessing user that was added to req by the auth middleware
+//     const user = req.user;
+//     // don't send back the password hash
+//     delete user.dataValues["password"];
 
-    res.json({
-        youPosted: {
-            ...req.body
-        },
-        userFoundWithToken: {
-            ...user.dataValues
-        }
-    });
-});
+//     res.json({
+//         youPosted: {
+//             ...req.body
+//         },
+//         userFoundWithToken: {
+//             ...user.dataValues
+//         }
+//     });
+// });
 
 app.patch('/users/:id/', auth, async (req, res, next) => {
     try {
@@ -120,8 +116,6 @@ app.patch('/users/:id/', auth, async (req, res, next) => {
             res.json(updated)
         }
 
-        console.log("WHAT IS USERS ID", userId, "imageUrl", imageUrl, "name", name)
-        //res.json(updated)
     } catch (e) {
         next(e)
     }

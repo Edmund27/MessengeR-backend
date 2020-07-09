@@ -19,10 +19,8 @@ const findOrCreateChat = async (user1Id, user2Id) => {
         }
     )
     if (chat) {
-        //console.log(chat)
         return chat
     } else {
-        //console.log("WHAT IS CHAT", chat)
         return (
             await Chat.create({
                 user1Id: user1Id,
