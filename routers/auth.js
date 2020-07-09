@@ -36,17 +36,18 @@ router.post("/login", async (req, res, next) => {
 });
 
 router.post("/signup", async (req, res) => {
-    const { email, password, name, isArtist } = req.body;
+    const { email, password, name } = req.body;
     if (!email || !password || !name) {
         return res.status(400).send("Please provide an email, password and a name");
     }
 
     try {
+        const imageUrl = "https://docs.atlassian.com/aui/8.6.0/docs/images/avatar-person.svg"
         const newUser = await User.create({
             email,
             password: bcrypt.hashSync(password, SALT_ROUNDS),
             name,
-            isArtist
+            imageUrl
         });
 
         delete newUser.dataValues["password"]; // don't send back the password hash

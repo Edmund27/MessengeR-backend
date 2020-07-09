@@ -15,7 +15,7 @@ const findOrCreateChat = async (user1Id, user2Id) => {
                 }
             },
             include: [Message],
-            order: [[Message, 'createdAt', 'DESC']]
+            order: [[Message, 'createdAt', 'ASC']]
         }
     )
     if (chat) {

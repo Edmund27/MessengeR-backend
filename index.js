@@ -10,6 +10,7 @@ const { Op } = require("sequelize")
 const socketConnections = {}
 const findOrCreateChat = require("./methods/chat")
 const createMessage = require("./methods/message")
+const auth = require("./auth/middleware");
 
 
 app.use(cors());
@@ -25,7 +26,7 @@ io.sockets.on('connection', async (socket) => {
     // console.log('USERS TEST', users)
     //socket.emit('sendUsers', users)
     socket.on('userLogin', async email => {
-        console.log("AGAIN")
+        console.log("AGAIN *************************", email)
         const user = await User.findOne({
             where: {
                 email
@@ -33,7 +34,7 @@ io.sockets.on('connection', async (socket) => {
         })
         if (user) {
             const users = await User.findAll({
-                attributes: ['name', 'id']
+                attributes: ['name', 'id', 'imageUrl']
             })
             socketConnections[user.id] = socket.id;
             socket.emit('usersData', users)
@@ -99,6 +100,33 @@ app.post("/authorized_post_request", authMiddleWare, (req, res) => {
         }
     });
 });
+
+app.patch('/users/:id/', auth, async (req, res, next) => {
+    try {
+        const userId = req.params.id
+        const toUpdate = await User.findByPk(userId)
+
+        const { imageUrl, name } = req.body
+        let itemToUpdate
+
+        if (!imageUrl) {
+            const updated = await toUpdate.update({ name })
+            res.json(updated)
+        } else if (!name) {
+            const updated = await toUpdate.update({ imageUrl })
+            res.json(updated)
+        } else {
+            const updated = await toUpdate.update({ imageUrl, name })
+            res.json(updated)
+        }
+
+        console.log("WHAT IS USERS ID", userId, "imageUrl", imageUrl, "name", name)
+        //res.json(updated)
+    } catch (e) {
+        next(e)
+    }
+})
+
 
 const authRouter = require("./routers/auth");
 app.use("/", authRouter);
