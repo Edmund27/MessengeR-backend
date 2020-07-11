@@ -32,8 +32,13 @@ io.sockets.on('connection', async (socket) => {
             const users = await User.findAll({
                 attributes: ['name', 'id', 'imageUrl']
             })
-            socketConnections[user.id] = socket.id;
+            //io.sockets.connected[socket.id].disconnect()
+
             socket.emit('usersData', users)
+            socketConnections[user.id] = socket.id;
+            //console.log("SOCKET CONNECTIONNNNNNNNNNNNNNNNNNNNN", socketConnections)
+            io.emit('updatedOnlineUsers', socketConnections);
+
         }
     })
 
@@ -56,6 +61,20 @@ io.sockets.on('connection', async (socket) => {
         const receiverSocketId = socketConnections[receiver.id]
         socket.to(receiverSocketId).emit('incomingMessage', message)
     })
+
+    socket.on('disconnect', () => {
+        function deleteBySocketId(socketId) {
+            for (var userId in socketConnections) {
+                if (socketConnections[userId] == socketId) {
+                    delete socketConnections[userId];
+                }
+            }
+        }
+        deleteBySocketId(socket.id)
+        //delete socketConnections[socket.id];
+        //console.log("SOCKET DISCONNECTTTTTTT", socketConnections)
+        io.emit('updatedOnlineUsers', socketConnections);
+    });
 })
 
 //Sockets end *************************************
@@ -68,9 +87,6 @@ app.use(bodyParserMiddleWare);
 
 const authMiddleWare = require("./auth/middleware");
 
-app.get("/", (req, res) => {
-    res.send("Hi from express");
-});
 
 app.post("/echo", (req, res) => {
     res.json({
@@ -80,6 +96,9 @@ app.post("/echo", (req, res) => {
     });
 });
 
+app.get("/", (req, res) => {
+    res.send("Hi from express");
+});
 // // POST endpoint which requires a token for testing purposes, can be removed
 // app.post("/authorized_post_request", authMiddleWare, (req, res) => {
 //     // accessing user that was added to req by the auth middleware
