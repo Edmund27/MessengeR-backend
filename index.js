@@ -11,6 +11,9 @@ const socketConnections = {}
 const findOrCreateChat = require("./methods/chat")
 const createMessage = require("./methods/message")
 const auth = require("./auth/middleware");
+const cloneDeep = require('lodash.clonedeep');
+const _ = require('lodash')
+
 
 
 app.use(cors());
@@ -33,8 +36,55 @@ io.sockets.on('connection', async (socket) => {
                 attributes: ['name', 'id', 'imageUrl']
             })
             //io.sockets.connected[socket.id].disconnect()
+            const userId = user.id
+            const chats = await Chat.findAll({
+                where: Sequelize.or(
+                    { user1Id: userId },
+                    { user2Id: userId }
+                ),
+                include: [Message],
+            })
 
-            socket.emit('usersData', users)
+            const chatsWithLastMessage = await chats.map(function (chat) {
+                const lastMessage = chat.messages.length ? chat.messages[chat.messages.length - 1].text : []
+                const senderId = chat.messages.length ? chat.messages[chat.messages.length - 1].senderId : null
+
+                return {
+                    user1Id: chat.user1Id,
+                    user2Id: chat.user2Id,
+                    senderId: senderId,
+                    message: lastMessage
+                }
+            });
+            //console.log("users", chatsWithLastMessage)
+
+            const usersWithMessage = users.map(user => {
+                const chatsWithMessage = chatsWithLastMessage.find(chat => user.id == chat.user1Id || user.id == chat.user2Id)
+                //console.log("TEST", user.id, chatsWithMessage)
+                user.dataValues.chat = chatsWithMessage ? chatsWithMessage : null
+                return user;
+            })
+            //console.log(usersWithMessage);
+
+            // const usersWithMessage = users.map(function (user) {
+            //     chatsWithLastMessage.map(function (chat) {
+            //         //console.log("USER", user.id, "USER1 and USER2", chat.user1Id, chat.user2Id)
+            //         if (user.id === chat.user1Id || user.id === chat.user2Id) {
+            //             //console.log("SUCCESS", user.id)
+            //             return {
+            //                 user: user,
+            //                 message: chat.message,
+            //                 sender: chat.senderId
+            //             }
+            //         } else return
+
+
+            //     })
+            // })
+
+
+            // console.log(usersWithMessage)
+            socket.emit('usersData', usersWithMessage)
             socketConnections[user.id] = socket.id;
             //console.log("SOCKET CONNECTIONNNNNNNNNNNNNNNNNNNNN", socketConnections)
             io.emit('updatedOnlineUsers', socketConnections);
@@ -56,10 +106,12 @@ io.sockets.on('connection', async (socket) => {
 
         const { user, receiver, text } = messageObject
         const message = await createMessage(user.id, receiver.id, text)
-        socket.emit('incomingMessage', message)
 
+        const emittingMessage = { ...message.dataValues, receiverId: receiver.id }
+        socket.emit('incomingMessage', emittingMessage)
+        //console.log("MESSAGE", emittingMessage)
         const receiverSocketId = socketConnections[receiver.id]
-        socket.to(receiverSocketId).emit('incomingMessage', message)
+        socket.to(receiverSocketId).emit('incomingMessage', emittingMessage)
     })
 
     socket.on('disconnect', () => {
@@ -140,8 +192,53 @@ app.patch('/users/:id/', auth, async (req, res, next) => {
     }
 })
 
+// app.get('/users/:id/chats/messages/last', auth, async (req, res, next) => {
+//     try {
+//         const userId = req.params.id
+//         //console.log("PARAMS ID", userId)
+
+//         const chats = await Chat.findAll({
+//             where: Sequelize.or(
+//                 { user1Id: userId },
+//                 { user2Id: userId }
+//             ),
+//             include: [Message],
+//             //plain: true
+//             //nest: true,
+//             //order: [[Message, 'createdAt', 'ASC']]
+//         })
+//         //console.log("FIRST", chats)
+
+//         const chatsWithLastMessage = await chats.map(function (chat) {
+//             const lastMessage = chat.messages.length ? chat.messages[chat.messages.length - 1].text : []
+//             const senderId = chat.messages.length ? chat.messages[chat.messages.length - 1].senderId : null
+//             //{ id: chat.message.id, }
+//             //console.log("FIRST:", chat)
+//             //console.log("TEST111111111111111111", chat.messages)
+//             return {
+//                 user1Id: chat.user1Id,
+//                 user2Id: chat.user2Id,
+//                 senderId: senderId,
+//                 message: lastMessage
+//             }
+//         });
+//         // chatsWithLastMessage.map(function (chat) {
+//         //     console.log("TEST22222222222222222", chatsWithLastMessage[0].messages)
+//         // })
+//         //const deep = _.cloneDeep(chatsWithLastMessage);
+
+//         //console.log("SECOND:", chatsWithLastMessage)
+
+//         res.json(chatsWithLastMessage);
+
+//     } catch (e) {
+//         next(e)
+//     }
+// })
+
 
 const authRouter = require("./routers/auth");
+const { Sequelize } = require('./models')
 app.use("/", authRouter);
 
 
