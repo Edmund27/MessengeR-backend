@@ -64,7 +64,7 @@ io.sockets.on('connection', async (socket) => {
                 user.dataValues.chat = chatsWithMessage ? chatsWithMessage : null
                 return user;
             })
-            console.log(usersWithMessage);
+            //console.log(usersWithMessage);
 
             // const usersWithMessage = users.map(function (user) {
             //     chatsWithLastMessage.map(function (chat) {
